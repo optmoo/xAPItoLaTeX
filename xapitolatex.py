@@ -86,7 +86,7 @@ def parse_question(question):
     if question['learningObjectives']:
         output += parse_objectives(question['learningObjectives'])
 
-    if question['autoTests']:
+    if 'autoTests' in question and question['autoTests']:
         output += '\n\\textbf{{Autotest:}}\n'
         output += parse_autotest(question['autoTests']['autoTest'])
 
