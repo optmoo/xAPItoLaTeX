@@ -8,6 +8,10 @@ def main(args):
     root_tag = 'caseStudy'
     data = convert_XML_to_JSON(args.file)
 
+    if not root_tag in data:
+        print '[!] Not a {}'.format(root_tag)
+        sys.exit(1)
+
     document = latex_header.format(
         data[root_tag]['name'],
         data[root_tag]['hid']
@@ -21,18 +25,29 @@ def main(args):
 
     if 'fileResource' in data[root_tag]:
         document += '\\subsection{File Resources}\n'
-        document += '\subsubsection{{{}}}'.format(data[root_tag]['fileResource']['title'])
-        document += parse_fileresource(data[root_tag]['fileResource'])
+        if type(data[root_tag]['fileResource']) == type([]):
+            for resource in data[root_tag]['fileResource']:
+                document += '\subsubsection{{{}}}'.format(resource['title'])
+                document += parse_fileresource(resource)
+        else:
+            document += '\subsubsection{{{}}}'.format(data[root_tag]['fileResource']['title'])
+            document += parse_fileresource(data[root_tag]['fileResource'])
 
     if 'host' in data[root_tag]:
         document += '\\subsection{Hosts}\n'
-        for host in data[root_tag]['host']:
-            document += parse_host(host['configItem'])
+        if type(data[root_tag]['host']) == type([]):
+            for host in data[root_tag]['host']:
+                document += parse_host(host['configItem'])
+        else:
+            document += parse_host(data[root_tag]['host']['configItem'])
 
     if 'question' in data[root_tag]:
         document += '\\section{Questions}\n'
-        for question in data[root_tag]['question']:
-            document += parse_question(question)
+        if type(data[root_tag]['question']) == type([]):
+            for question in data[root_tag]['question']:
+                document += parse_question(question)
+        else:
+            document += parse_question(data[root_tag]['question'])
 
     document += latex_footer
 

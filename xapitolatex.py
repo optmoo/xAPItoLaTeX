@@ -52,8 +52,13 @@ def parse_host(host):
         text += '\\textbf{{Run Script}} {}\n\n'.format(host['runScript']['title'])
         text += parse_runscript(host['runScript'])
     if 'fileResource' in host:
-        text += '\\textbf{{File Resource}} {}\n\n'.format(host['fileResource']['title'])
-        text += parse_runscript(host['fileResource'])
+        if type(host['fileResource']) == type([]):
+            for resource in host['fileResource']:
+                text += '\\textbf{{File Resource}} {}\n\n'.format(resource['title'])
+                text += parse_runscript(resource)
+        else:
+            text += '\\textbf{{File Resource}} {}\n\n'.format(host['fileResource']['title'])
+            text += parse_runscript(host['fileResource'])
     return text
 
 def parse_objectives(objectives):
@@ -83,32 +88,44 @@ def parse_question(question):
         output += '\\item \\textbf{{Random:}} {}\n'.format(question['@random'])
     output += '\\end{itemize}\n'
 
-    if question['learningObjectives']:
+    if 'learningObjectives' in question and question['learningObjectives']:
         output += parse_objectives(question['learningObjectives'])
 
     if 'autoTests' in question and question['autoTests']:
         output += '\n\\textbf{{Autotest:}}\n'
-        output += parse_autotest(question['autoTests']['autoTest'])
+        if type(question['autoTests']['autoTest']) == type([]):
+            for test in question['autoTests']['autoTest']:
+                output += parse_autotest(test)
+        else:
+            output += parse_autotest(question['autoTests']['autoTest'])
 
-    if question['note']:
-        output += '\n\\textbf{{Note}} {}\n'.format(question['note'])
+    if 'note' in question and question['note']:
+        if '\\' in question['note']:
+            output += '\n\\textbf{{Note}} {}\n'.format(question['note'].replace('\\','\\\\'))
+        else:
+            output += '\n\\textbf{{Note}} {}\n'.format(question['note'])
 
     output += '\n\\textbf{{Question:}} {}\n\n'.format(question['richText'].replace('\\','\\\\'))
 
-    if question['answers']:
+    if 'answers' in question and question['answers']:
         output += '\\begin{enumerate}[label=\\Alph*]\n'
         for answer in question['answers']['answer']:
             output += '\\item{' + parse_answer(answer) + '}\n'
         output += '\\end{enumerate}\n'
 
-    if question['hints']:
+    if 'hints' in question and question['hints']:
         output += '\n\\textbf{Hints:}\n'
         output += '\\begin{itemize}\n'
         for hint in question['hints'].items():
-            output += '\\item {}\n'.format(hint[1].replace('\\','\\\\'))
+            if hint[1]:
+                if type(hint[1]) == type([]):
+                    for h in hint[1]:
+                        output += '\\item {}\n'.format(h.replace('\\','\\\\'))
+                else:
+                    output += '\\item {}\n'.format(hint[1].replace('\\','\\\\'))
         output += '\\end{itemize}\n'
 
-    if question['feedback']:
+    if 'feedback' in question and question['feedback']:
         output += '\n\\textbf{{Feedback:}} {}\n'.format(question['feedback'].replace('\\','\\\\'))
 
     return output
