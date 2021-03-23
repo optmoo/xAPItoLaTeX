@@ -3,14 +3,27 @@ import os
 import sys
 import xmltodict
 
+def escape_paths(obj):
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            obj[key] = escape_paths(value)
+        return obj
+    elif isinstance(obj, list):
+        return [escape_paths(v) for v in obj]
+    elif isinstance(obj, basestring):
+        return obj.replace('\\','\\\\')
+    else:
+        return obj
+
 def convert_XML_to_JSON(xml_path, export=False):
     with open(xml_path) as xml_file:
         data_dict = xmltodict.parse(xml_file.read())
+        data_dict = escape_paths(data_dict)
 
         if export:
             json_path = os.path.splitext(xml_path)[0] + '.json'
-            with open("data.json", "w") as json_file:
-                json_file.write(json_data)
+            with open(json_path, "w") as json_file:
+                json_file.write(data_dict)
 
         return data_dict
 
@@ -101,11 +114,11 @@ def parse_question(question):
 
     if 'note' in question and question['note']:
         if '\\' in question['note']:
-            output += '\n\\textbf{{Note}} {}\n'.format(question['note'].replace('\\','\\\\'))
+            output += '\n\\textbf{{Note}} {}\n'.format(question['note'])
         else:
             output += '\n\\textbf{{Note}} {}\n'.format(question['note'])
 
-    output += '\n\\textbf{{Question:}} {}\n\n'.format(question['richText'].replace('\\','\\\\'))
+    output += '\n\\textbf{{Note}} {}\n'.format(question['note'])
 
     if 'answers' in question and question['answers']:
         output += '\\begin{enumerate}[label=\\Alph*]\n'
@@ -120,13 +133,13 @@ def parse_question(question):
             if hint[1]:
                 if type(hint[1]) == type([]):
                     for h in hint[1]:
-                        output += '\\item {}\n'.format(h.replace('\\','\\\\'))
+                        output += '\\item {}\n'.format(h)
                 else:
-                    output += '\\item {}\n'.format(hint[1].replace('\\','\\\\'))
+                    output += '\\item {}\n'.format(hint[1])
         output += '\\end{itemize}\n'
 
     if 'feedback' in question and question['feedback']:
-        output += '\n\\textbf{{Feedback:}} {}\n'.format(question['feedback'].replace('\\','\\\\'))
+        output += '\n\\textbf{{Feedback:}} {}\n'.format(question['feedback'])
 
     return output
 
